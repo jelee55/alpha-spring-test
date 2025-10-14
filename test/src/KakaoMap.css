@@ -1,0 +1,220 @@
+.map-container {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+  max-width: 1400px;
+  margin: 0 auto;
+}
+
+.map-sidebar {
+  width: 350px;
+  background: #fff;
+  border: 1px solid #ddd;
+  border-radius: 5px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.search-box {
+  padding: 15px;
+  background: #f5f5f5;
+  border-bottom: 1px solid #ddd;
+  display: flex;
+  gap: 5px;
+}
+
+.search-box input {
+  flex: 1;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  font-size: 14px;
+}
+
+.search-box button {
+  padding: 10px 20px;
+  background: #007bff;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 14px;
+}
+
+.search-box button:hover {
+  background: #0056b3;
+}
+
+/* 주소 찾기 및 저장 섹션 */
+.address-save-section {
+  padding: 15px;
+  background: #f8f9fa;
+  border-bottom: 2px solid #ddd;
+}
+
+.address-save-section h3 {
+  margin: 0 0 10px 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.address-save-section .info-text {
+  font-size: 12px;
+  color: #666;
+  margin: 0 0 10px 0;
+}
+
+.selected-address {
+  background: white;
+  padding: 10px;
+  border-radius: 5px;
+  margin-bottom: 10px;
+  border: 1px solid #ddd;
+}
+
+.selected-address p {
+  margin: 5px 0;
+  font-size: 12px;
+  color: #333;
+}
+
+.selected-address strong {
+  color: #007bff;
+}
+
+.marker-title-input {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  font-size: 14px;
+  margin-bottom: 10px;
+  box-sizing: border-box;
+}
+
+.save-button {
+  width: 100%;
+  padding: 10px;
+  background: #28a745;
+  color: white;
+  border: none;
+  border-radius: 3px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: bold;
+}
+
+.save-button:hover:not(:disabled) {
+  background: #218838;
+}
+
+.save-button:disabled {
+  background: #6c757d;
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+.places-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  overflow-y: auto;
+  flex: 1;
+  max-height: 500px;
+}
+
+.places-list .item {
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+  cursor: pointer;
+  display: flex;
+  gap: 10px;
+  transition: background 0.2s;
+}
+
+.places-list .item:hover {
+  background: #f8f9fa;
+}
+
+.places-list .markerbg {
+  display: inline-block;
+  width: 36px;
+  height: 37px;
+  background: url(https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/marker_number_blue.png) no-repeat;
+  flex-shrink: 0;
+}
+
+.places-list .marker_1 { background-position: 0 -10px; }
+.places-list .marker_2 { background-position: 0 -56px; }
+.places-list .marker_3 { background-position: 0 -102px; }
+.places-list .marker_4 { background-position: 0 -148px; }
+.places-list .marker_5 { background-position: 0 -194px; }
+.places-list .marker_6 { background-position: 0 -240px; }
+.places-list .marker_7 { background-position: 0 -286px; }
+.places-list .marker_8 { background-position: 0 -332px; }
+.places-list .marker_9 { background-position: 0 -378px; }
+.places-list .marker_10 { background-position: 0 -423px; }
+.places-list .marker_11 { background-position: 0 -470px; }
+.places-list .marker_12 { background-position: 0 -516px; }
+.places-list .marker_13 { background-position: 0 -562px; }
+.places-list .marker_14 { background-position: 0 -608px; }
+.places-list .marker_15 { background-position: 0 -654px; }
+
+.places-list .info {
+  flex: 1;
+}
+
+.places-list .info h5 {
+  margin: 0 0 5px 0;
+  font-size: 14px;
+  font-weight: bold;
+  color: #333;
+}
+
+.places-list .info span {
+  display: block;
+  font-size: 12px;
+  color: #666;
+  margin-top: 3px;
+}
+
+.places-list .info .jibun {
+  font-size: 11px;
+  color: #999;
+}
+
+.places-list .info .tel {
+  color: #009900;
+  font-weight: 500;
+}
+
+.pagination {
+  padding: 10px;
+  text-align: center;
+  background: #f5f5f5;
+  border-top: 1px solid #ddd;
+}
+
+.pagination a {
+  display: inline-block;
+  margin: 0 3px;
+  padding: 5px 10px;
+  text-decoration: none;
+  color: #333;
+  border: 1px solid #ddd;
+  border-radius: 3px;
+  font-size: 12px;
+}
+
+.pagination a:hover {
+  background: #e9ecef;
+}
+
+.pagination a.on {
+  background: #007bff;
+  color: white;
+  border-color: #007bff;
+  font-weight: bold;
+}
+

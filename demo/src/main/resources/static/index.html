@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>간단한 API 테스트</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 800px;
+            margin: 50px auto;
+            padding: 20px;
+            background-color: #f5f5f5;
+        }
+        .container {
+            background: white;
+            padding: 30px;
+            border-radius: 10px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        h1 {
+            color: #333;
+            text-align: center;
+        }
+        .button {
+            background: #007bff;
+            color: white;
+            padding: 12px 24px;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 10px;
+            font-size: 16px;
+        }
+        .button:hover {
+            background: #0056b3;
+        }
+        .result {
+            background: #f8f9fa;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 20px;
+            border-left: 4px solid #007bff;
+        }
+        .loading {
+            color: #666;
+            font-style: italic;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>🚀 간단한 API 테스트</h1>
+        
+        <div style="text-align: center;">
+            <button class="button" onclick="testHello()">안녕하세요 API</button>
+            <button class="button" onclick="testTest()">테스트 API</button>
+        </div>
+        
+        <div id="result" class="result" style="display: none;">
+            <h3>응답 결과:</h3>
+            <pre id="response"></pre>
+        </div>
+    </div>
+
+    <script>
+        async function callAPI(url) {
+            const resultDiv = document.getElementById('result');
+            const responsePre = document.getElementById('response');
+            
+            resultDiv.style.display = 'block';
+            responsePre.innerHTML = '<span class="loading">로딩 중...</span>';
+            
+            try {
+                const response = await fetch(url);
+                const data = await response.json();
+                responsePre.innerHTML = JSON.stringify(data, null, 2);
+            } catch (error) {
+                responsePre.innerHTML = `오류: ${error.message}`;
+            }
+        }
+        
+        function testHello() {
+            callAPI('/api/hello');
+        }
+        
+        function testTest() {
+            callAPI('/api/test');
+        }
+    </script>
+</body>
+</html>

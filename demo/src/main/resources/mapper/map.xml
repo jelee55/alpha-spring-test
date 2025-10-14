@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.example.demo.domain.map.mapper.MapMapper">
+
+    <!-- ResultMap 정의 -->
+    <resultMap id="MapMarkerSimpleDtoResultMap" type="com.example.demo.domain.map.dto.MapMarkerSimpleDto">
+        <result property="title" column="title"/>
+        <association property="latlng" javaType="com.example.demo.domain.map.dto.LatLng">
+            <result property="lat" column="latitude"/>
+            <result property="lng" column="longitude"/>
+        </association>
+    </resultMap>
+
+    <!-- 모든 마커 간단 조회 (title, latlng만) -->
+    <select id="selectAll" resultMap="MapMarkerSimpleDtoResultMap">
+        SELECT 
+            title,
+            latitude,
+            longitude
+        FROM map_markers
+        ORDER BY created_at DESC
+    </select>
+
+</mapper>
+
