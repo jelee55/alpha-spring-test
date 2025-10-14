@@ -21,5 +21,26 @@
         ORDER BY created_at DESC
     </select>
 
+    <!-- 마커 추가 -->
+    <insert id="insertMarker" parameterType="com.example.demo.domain.map.dto.MapMarker" useGeneratedKeys="true" keyProperty="id">
+        INSERT INTO map_markers (
+            title,
+            latitude,
+            longitude,
+            address,
+            road_address,
+            created_at,
+            updated_at
+        ) VALUES (
+            #{title},
+            #{latitude},
+            #{longitude},
+            #{address},
+            #{roadAddress},
+            NOW(),
+            NOW()
+        )
+    </insert>
+
 </mapper>
 

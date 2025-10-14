@@ -13,8 +13,12 @@ export default function KakaoMap() {
   const [backendMarkers, setBackendMarkers] = useState([])
   const [selectedAddress, setSelectedAddress] = useState(null)
   const [markerTitle, setMarkerTitle] = useState("")
+  const [postcode, setPostcode] = useState("")
+  const [roadAddress, setRoadAddress] = useState("")
+  const [detailAddress, setDetailAddress] = useState("")
   const psRef = useRef(null)
   const geocoderRef = useRef(null)
+  const postcodeLayerRef = useRef(null)
 
   // 지도가 생성되면 Places 서비스 및 Geocoder 객체 생성
   useEffect(() => {
@@ -24,17 +28,29 @@ export default function KakaoMap() {
     }
   }, [map])
 
+  // Kakao SDK 초기화 (네비게이션용) - 주석처리
+  // useEffect(() => {
+  //   if (window.Kakao && !window.Kakao.isInitialized()) {
+  //     const kakaoKey = process.env.REACT_APP_KAKAOMAP_KEY
+  //     if (kakaoKey) {
+  //       window.Kakao.init(kakaoKey)
+  //       console.log('카카오 SDK 초기화 완료')
+  //     }
+  //   }
+  // }, [])
+
   // 백엔드에서 마커 데이터 가져오기
   useEffect(() => {
     const fetchBackendMarkers = async () => {
       try {
-        console.log('마커 데이터 요청 중: /api/map/markers')
-        const response = await fetch('/api/map/markers')
+        console.log('마커 데이터 요청 중: http://localhost:8080/api/map/markers')
+        const response = await fetch('http://localhost:8080/api/map/markers')
         console.log('응답 상태:', response.status, response.statusText)
         
         if (response.ok) {
           const data = await response.json()
           console.log('마커 데이터 로드 성공:', data)
+          console.log('마커 개수:', data.length)
           setBackendMarkers(data)
         } else {
           console.error('API 응답 실패:', response.status, response.statusText)
@@ -55,7 +71,13 @@ export default function KakaoMap() {
       const bounds = new window.kakao.maps.LatLngBounds()
       
       backendMarkers.forEach((marker) => {
-        bounds.extend(new window.kakao.maps.LatLng(marker.latlng.lat, marker.latlng.lng))
+        // 다양한 API 응답 형식 지원
+        const lat = marker.latlng?.lat || marker.latitude || marker.lat
+        const lng = marker.latlng?.lng || marker.longitude || marker.lng
+        
+        if (lat && lng) {
+          bounds.extend(new window.kakao.maps.LatLng(lat, lng))
+        }
       })
       
       // 모든 마커가 보이도록 지도 범위 설정
@@ -153,20 +175,31 @@ export default function KakaoMap() {
     }
 
     try {
-      const response = await fetch('/api/map/markers', {
+      const markerData = {
+        title: markerTitle,
+        latlng: {
+          lat: selectedAddress.lat,
+          lng: selectedAddress.lng
+        },
+        address: selectedAddress.address,
+        roadAddress: selectedAddress.roadAddress
+      }
+      
+      console.log('=== 마커 저장 데이터 ===')
+      console.log('제목:', markerData.title)
+      console.log('위도:', markerData.latlng.lat)
+      console.log('경도:', markerData.latlng.lng)
+      console.log('지번 주소:', markerData.address)
+      console.log('도로명 주소:', markerData.roadAddress)
+      console.log('전체 데이터:', markerData)
+      console.log('===================')
+      
+      const response = await fetch('http://localhost:8080/api/map/markers', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          title: markerTitle,
-          latlng: {
-            lat: selectedAddress.lat,
-            lng: selectedAddress.lng
-          },
-          address: selectedAddress.address,
-          roadAddress: selectedAddress.roadAddress
-        })
+        body: JSON.stringify(markerData)
       })
 
       if (response.ok) {
@@ -174,7 +207,7 @@ export default function KakaoMap() {
         setMarkerTitle("")
         setSelectedAddress(null)
         // 마커 목록 새로고침
-        const markersResponse = await fetch('/api/map/markers')
+        const markersResponse = await fetch('http://localhost:8080/api/map/markers')
         if (markersResponse.ok) {
           const data = await markersResponse.json()
           setBackendMarkers(data)
@@ -187,6 +220,103 @@ export default function KakaoMap() {
       alert("마커 저장 중 오류가 발생했습니다.")
     }
   }
+
+  // Daum 우편번호 검색 팝업 열기
+  const execDaumPostcode = () => {
+    if (!window.daum || !window.daum.Postcode) {
+      alert("우편번호 API가 로드되지 않았습니다.")
+      return
+    }
+
+    new window.daum.Postcode({
+      oncomplete: function (data) {
+        let addr = data.userSelectedType === 'R' ? data.roadAddress : data.jibunAddress
+
+        setPostcode(data.zonecode)
+        setRoadAddress(addr)
+        
+        // 주소로 좌표 검색
+        if (geocoderRef.current) {
+          geocoderRef.current.addressSearch(addr, (result, status) => {
+            if (status === window.kakao.maps.services.Status.OK) {
+              const lat = parseFloat(result[0].y)
+              const lng = parseFloat(result[0].x)
+              
+              setSelectedAddress({
+                lat: lat,
+                lng: lng,
+                address: data.jibunAddress || addr,
+                roadAddress: addr
+              })
+
+              // 지도 중심을 해당 위치로 이동
+              if (map) {
+                map.setCenter(new window.kakao.maps.LatLng(lat, lng))
+                map.setLevel(3)
+              }
+            }
+          })
+        }
+
+        closeDaumPostcode()
+      },
+      width: '100%',
+      height: '100%',
+      maxSuggestItems: 5,
+      shorthand: false
+    }).embed(postcodeLayerRef.current)
+
+    postcodeLayerRef.current.style.display = 'block'
+    initLayerPosition()
+  }
+
+  // 우편번호 검색 팝업 닫기
+  const closeDaumPostcode = () => {
+    if (postcodeLayerRef.current) {
+      postcodeLayerRef.current.style.display = 'none'
+    }
+  }
+
+  // 레이어 팝업 위치 초기화
+  const initLayerPosition = () => {
+    const width = 400
+    const height = 500
+    const borderWidth = 5
+
+    const layer = postcodeLayerRef.current
+    layer.style.width = `${width}px`
+    layer.style.height = `${height}px`
+    layer.style.border = `${borderWidth}px solid #ccc`
+    layer.style.left = `${((window.innerWidth || document.documentElement.clientWidth) - width) / 2 - borderWidth}px`
+    layer.style.top = `${((window.innerHeight || document.documentElement.clientHeight) - height) / 2 - borderWidth}px`
+  }
+
+  // 카카오내비 길 안내 시작 - 주석처리
+  // const startNavigation = (marker) => {
+  //   if (!window.Kakao || !window.Kakao.isInitialized()) {
+  //     alert('카카오 SDK가 초기화되지 않았습니다.')
+  //     return
+  //   }
+
+  //   if (!window.Kakao.Navi) {
+  //     alert('카카오내비를 사용할 수 없습니다. 모바일에서 시도해주세요.')
+  //     return
+  //   }
+
+  //   console.log('네비게이션 시작:', marker.title, marker.latlng)
+
+  //   try {
+  //     window.Kakao.Navi.start({
+  //       name: marker.title,
+  //       x: marker.latlng.lng,
+  //       y: marker.latlng.lat,
+  //       coordType: 'wgs84',
+  //     })
+  //   } catch (error) {
+  //     console.error('네비게이션 시작 실패:', error)
+  //     alert('카카오내비 실행에 실패했습니다. 모바일 환경에서만 사용 가능합니다.')
+  //   }
+  // }
 
   if (loading) return <div>지도 로딩 중...</div>
   if (error) return <div>지도 로딩 에러: {error.message}</div>
@@ -209,7 +339,40 @@ export default function KakaoMap() {
         {/* 주소 찾기 및 저장 섹션 */}
         <div className="address-save-section">
           <h3>마커 추가</h3>
-          <p className="info-text">지도를 클릭하여 위치를 선택하세요</p>
+          
+          {/* 우편번호 검색 */}
+          <div className="postcode-search">
+            <div style={{ display: 'flex', gap: '5px', marginBottom: '10px' }}>
+              <input
+                type="text"
+                value={postcode}
+                readOnly
+                placeholder="우편번호"
+                style={{ width: '100px' }}
+              />
+              <button onClick={execDaumPostcode} className="postcode-button">
+                우편번호 찾기
+              </button>
+            </div>
+            <input
+              type="text"
+              value={roadAddress}
+              readOnly
+              placeholder="주소"
+              style={{ width: '100%', marginBottom: '10px' }}
+            />
+            <input
+              type="text"
+              value={detailAddress}
+              onChange={(e) => setDetailAddress(e.target.value)}
+              placeholder="상세주소"
+              style={{ width: '100%', marginBottom: '10px' }}
+            />
+          </div>
+
+          <p className="info-text" style={{ marginTop: '10px' }}>
+            또는 지도를 클릭하여 위치를 선택하세요
+          </p>
           
           {selectedAddress && (
             <div className="selected-address">
@@ -321,20 +484,50 @@ export default function KakaoMap() {
         )}
 
         {/* 백엔드에서 가져온 마커들 */}
-        {backendMarkers.map((marker, index) => (
-          <MapMarker
-            key={`backend-${index}`}
-            position={marker.latlng}
-            image={{
-              src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
-              size: {
-                width: 24,
-                height: 35,
-              },
-            }}
-            title={marker.title}
-          />
-        ))}
+        {backendMarkers.map((marker, index) => {
+          // 다양한 API 응답 형식 지원
+          const position = marker.latlng 
+            ? marker.latlng 
+            : { 
+                lat: marker.latitude || marker.lat, 
+                lng: marker.longitude || marker.lng 
+              }
+          
+          return (
+            <MapMarker
+              key={`backend-${index}`}
+              position={position}
+              image={{
+                src: "https://t1.daumcdn.net/localimg/localimages/07/mapapidoc/markerStar.png",
+                size: {
+                  width: 24,
+                  height: 35,
+                },
+              }}
+              title={marker.title}
+              // 네비게이션 기능 주석처리
+              // onClick={() => startNavigation(marker)}
+              // clickable={true}
+            >
+              {/* 네비게이션 인포윈도우 주석처리 */}
+              {/* <div style={{ 
+                padding: "5px 10px", 
+                color: "#000", 
+                backgroundColor: "white",
+                border: "1px solid #ccc",
+                borderRadius: "5px",
+                fontSize: "12px",
+                whiteSpace: "nowrap",
+                boxShadow: "0 2px 4px rgba(0,0,0,0.2)"
+              }}>
+                <strong>{marker.title}</strong>
+                <div style={{ fontSize: "10px", color: "#666", marginTop: "3px" }}>
+                  클릭하여 길 안내
+                </div>
+              </div> */}
+            </MapMarker>
+          )
+        })}
 
         {/* 검색 결과 마커들 */}
         {places.map((place, index) => (
@@ -376,6 +569,33 @@ export default function KakaoMap() {
           </MapMarker>
         ))}
       </Map>
+
+      {/* 우편번호 검색 레이어 */}
+      <div
+        ref={postcodeLayerRef}
+        id="postcodeLayer"
+        style={{
+          display: 'none',
+          position: 'fixed',
+          overflow: 'hidden',
+          zIndex: 999,
+          backgroundColor: 'white',
+          WebkitOverflowScrolling: 'touch'
+        }}
+      >
+        <img
+          src="//t1.daumcdn.net/postcode/resource/images/close.png"
+          onClick={closeDaumPostcode}
+          style={{
+            cursor: 'pointer',
+            position: 'absolute',
+            right: '-3px',
+            top: '-3px',
+            zIndex: 1
+          }}
+          alt="닫기"
+        />
+      </div>
     </div>
   )
 }

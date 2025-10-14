@@ -5,7 +5,7 @@ import KakaoMap from './KakaoMap';
 function App() {
   return (
     <div className="App">
-      
+      {/* 여기기 */}
       <header className="App-header">
         <h1>카카오맵 장소 검색</h1>
         
