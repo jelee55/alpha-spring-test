@@ -1,0 +1,17 @@
+spring.application.name=demo
+server.port=8080
+
+# DataSource 설정
+spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
+spring.datasource.url=jdbc:mysql://localhost:3306/test?useSSL=false&serverTimezone=Asia/Seoul&characterEncoding=UTF-8
+spring.datasource.username=root
+spring.datasource.password=YOUR_PASSWORD_HERE
+
+# MyBatis 설정
+mybatis.mapper-locations=classpath:mapper/**/*.xml
+mybatis.type-aliases-package=com.example.demo.mapper
+mybatis.configuration.map-underscore-to-camel-case=true
+mybatis.configuration.default-fetch-size=100
+mybatis.configuration.default-statement-timeout=30
+
+

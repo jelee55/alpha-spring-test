@@ -32,10 +32,27 @@ build/
 ### VS Code ###
 .vscode/
 
+### Eclipse ###
+.metadata/
+bin/
+tmp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+local.properties
+.loadpath
+.recommenders
+
 ### Application Properties ###
 src/main/resources/application.properties
 src/main/resources/application-*.properties
+# 템플릿 파일은 포함
+!src/main/resources/application.properties.example
+!src/main/resources/application-*.properties.example
 
 ### Docker Configuration ###
 docker-compose.yml
 docker-compose.override.yml
+# 템플릿 파일은 포함
+!docker-compose.yml.example

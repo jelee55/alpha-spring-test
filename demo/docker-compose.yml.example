@@ -1,0 +1,46 @@
+version: '3.8'
+
+services:
+  # MySQL 데이터베이스 서비스
+  mysql:
+    image: mysql:8.0
+    container_name: demo-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: YOUR_PASSWORD_HERE
+      MYSQL_DATABASE: test
+      MYSQL_CHARACTER_SET_SERVER: utf8mb4
+      MYSQL_COLLATION_SERVER: utf8mb4_unicode_ci
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql-data:/var/lib/mysql
+      - ./create_map_markers_table.sql:/docker-entrypoint-initdb.d/init.sql
+    networks:
+      - demo-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost", "-u", "root", "-pYOUR_PASSWORD_HERE"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Spring Boot 애플리케이션 서비스
+  app:
+    build: .
+    container_name: demo-app
+    environment:
+      SPRING_PROFILES_ACTIVE: docker
+    ports:
+      - "8080:8080"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - demo-network
+
+volumes:
+  mysql-data:
+
+networks:
+  demo-network:
+    driver: bridge
+
