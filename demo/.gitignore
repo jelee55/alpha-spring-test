@@ -34,3 +34,8 @@ build/
 
 ### Application Properties ###
 src/main/resources/application.properties
+src/main/resources/application-*.properties
+
+### Docker Configuration ###
+docker-compose.yml
+docker-compose.override.yml
